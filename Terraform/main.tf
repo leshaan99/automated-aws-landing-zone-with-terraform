@@ -84,6 +84,7 @@ resource "aws_security_group" "task1-sg" {
 resource "aws_instance" "task1-ws" {
   ami             = "ami-04b4f1a9cf54c11d0"
   instance_type   = "t2.micro"
+  associate_public_ip_address = true
   subnet_id      = aws_subnet.task1-subnet.id
   vpc_security_group_ids = [aws_security_group.task1-sg.id]
 
