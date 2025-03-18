@@ -88,14 +88,8 @@ resource "aws_instance" "task1-ws" {
   subnet_id      = aws_subnet.task1-subnet.id
   vpc_security_group_ids = [aws_security_group.task1-sg.id]
 
-  user_data = <<-EOF
-              #!/bin/bash
-              sudo apt update
-              sudo apt install apache2 -y
-              sudo systemctl start apache2
-              sudo systemctl enable apache2
-              echo '<html><body><h1>Hello, World!</h1></body></html>' | sudo tee /var/www/html/index.html
-            EOF
+  user_data = file("install_apache.sh")
+
   tags = {
   Name = "task1-ws"
   }
