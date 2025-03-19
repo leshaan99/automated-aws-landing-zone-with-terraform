@@ -1,12 +1,3 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
-}
-
 provider "aws" {
   region = "us-east-1"
 }
@@ -24,6 +15,8 @@ resource "aws_subnet" "task1-subnet" {
   vpc_id     = aws_vpc.task1-vpc.id
   cidr_block = "10.0.1.0/24"
   map_public_ip_on_launch = true
+  availability_zone = "us-east-1a"
+
   tags = {
   "Name" = "task1-subnet"
   }
@@ -40,14 +33,16 @@ resource "aws_internet_gateway" "task1-igw" {
 # Route Table
 resource "aws_route_table" "task1-rt" {
   vpc_id = aws_vpc.task1-vpc.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.task1-igw.id
-  }
   tags = {
   "Name" = "task1-rt"
   }
+}
+
+# Add route to Internet Gateway
+resource "aws_route" "internet_access" {
+  route_table_id         = aws_route_table.task1-rt.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.task1-igw.id
 }
 
 # Route Table Association
@@ -75,6 +70,13 @@ resource "aws_security_group" "task1-sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
     tags = {
     Name = "task1-sg"
   }
@@ -82,10 +84,9 @@ resource "aws_security_group" "task1-sg" {
 
 # EC2 Instance
 resource "aws_instance" "task1-ws" {
-  ami             = "ami-04b4f1a9cf54c11d0"
-  instance_type   = "t2.micro"
-  associate_public_ip_address = true
-  subnet_id      = aws_subnet.task1-subnet.id
+  ami           = "ami-0fc5d935ebf8bc3bc"
+  instance_type = "t2.micro"
+  subnet_id     = aws_subnet.task1-subnet.id
   vpc_security_group_ids = [aws_security_group.task1-sg.id]
 
   user_data = file("install_apache.sh")
